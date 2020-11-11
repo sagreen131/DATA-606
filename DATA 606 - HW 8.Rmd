@@ -1,0 +1,394 @@
+---
+title: "Chapter 8 - Introduction to Linear Regression"
+author: "Shana Green"
+output:
+    pdf_document:
+        extra_dependencies: ["geometry", "multicol", "multirow", "xcolor"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Nutrition at Starbucks, Part I.** (8.22, p. 326) The scatterplot below shows the relationship between the number of calories and amount of carbohydrates (in grams) Starbucks food menu items contain. Since Starbucks only lists the number of calories on the display items, we are interested in predicting the amount of carbs a menu item has based on its calorie content.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="33%", fig.height=4}
+library(openintro)
+# load data ---------------------------------------------------------
+starbucks <- read.csv("https://github.com/jbryer/DATA606Fall2019/raw/master/course_data/starbucks.csv")
+# model calories vs. carbos -----------------------------------------
+m_carb_cals <- lm(carb ~ calories, data = starbucks)
+# plot calories vs. carbos ------------------------------------------
+par(mar = c(3.5, 4, 1, 0.5), las = 1, mgp = c(2.5, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5)
+plot(carb ~ calories, data = starbucks, 
+     pch = 19, col = COL[1,2], 
+     xlab = "Calories", ylab = "Carbs (grams)", axes = FALSE)
+axis(1)
+axis(2, at = seq(20, 80, 20))
+box()
+abline(m_carb_cals, col = COL[2], lwd = 2)
+# plot residuals ----------------------------------------------------
+par(mar = c(3.5, 4, 1, 0.5), las = 1, mgp = c(2.5, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5)
+
+plot(m_carb_cals$residuals ~ starbucks$calories,
+     xlab = "Calories", ylab = "Residuals", 
+     col = COL[1,2], pch = 19,
+     ylim = c(-30, 30), axes = FALSE)
+axis(1)
+axis(2, at = seq(-20, 20, 20))
+box()
+abline(h = 0, lty = 2)
+# histogram of residuals --------------------------------------------
+par(mar = c(3.5, 2.5, 0.5, 0.5), las = 1, mgp = c(2.5, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5)
+
+hist(m_carb_cals$residuals,
+     col = COL[1], 
+     xlab = "Residuals", ylab = "", main = "", 
+     axes = FALSE, xlim = c(-40,40))
+axis(1, at = seq(-40, 40, 20))
+axis(2)
+```
+
+(a) Describe the relationship between number of calories and amount of carbohydrates (in grams) that Starbucks food menu items contain.
+
+**The direction is positive because the pattern in the scatterplot slopes upward. The form is linear and the strength is weak because the data is not very clear. The points are spread far apart.** 
+
+(b) In this scenario, what are the explanatory and response variables?
+
+**The explanatory variable is the calories and the response variable is the carbohydrates (gram).**
+
+(c) Why might we want to fit a regression line to these data?
+
+**We might want to fit a regression line to these data so we can predict the amount of carbohydrates of a particular food item with a known number of calories.**
+
+(d) Do these data meet the conditions required for fitting a least squares line?
+
+**The conditions required are: Independent observations, linear relationship, equal variance, and normal residuals. The equal variance is not satisfied because the vertical spread in the residual plot is much higher to the right in the residual plot. Since that condition is not met, it is not appropriate to fit a least squares line.**
+
+
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**Body measurements, Part I.** (8.13, p. 316) Researchers studying anthropometry collected body girth measurements and skeletal diameter measurements, as well as age, weight, height and gender for 507 physically active individuals. The scatterplot below shows the relationship between height and shoulder girth (over deltoid muscles), both measured in centimeters.
+
+\begin{center}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.height=4}
+# load packages -----------------------------------------------------
+library(openintro)
+# load data ---------------------------------------------------------
+data(bdims)
+# plot height vs. shoulder girth ------------------------------------
+par(mar = c(3.8, 3.8, 0.5, 0.5), las = 1, mgp = c(2.7, 0.7, 0), 
+    cex.lab = 1.25, cex.axis = 1.25)
+plot(bdims$hgt ~ bdims$sho_gi, 
+     xlab = "Shoulder girth (cm)", ylab = "Height (cm)", 
+     pch = 19, col = COL[1,2])
+```
+\end{center}
+
+(a) Describe the relationship between shoulder girth and height.
+
+**The direction is positive because the pattern in the scatterplot slopes upward. The form is linear and the strength is moderate because the data is clear. The points are not close together.** 
+
+
+(b) How would the relationship change if shoulder girth was measured in inches while the units of height remained in centimeters?
+
+**If we change the unit of measure, it would not affect the relationship.**
+
+
+--------------------------------------------------------------------------------
+
+\clearpage
+                                      
+**Body measurements, Part III.** (8.24, p. 326) Exercise above introduces data on shoulder girth and height of a group of individuals. The mean shoulder girth is 107.20 cm with a standard deviation of 10.37 cm. The mean height is 171.14 cm with a standard deviation of 9.41 cm. The correlation between height and shoulder girth is 0.67.
+
+(a) Write the equation of the regression line for predicting height.
+
+\begin {center}
+
+$\beta_1=r\frac{s_y}{s_x}$
+
+
+$\beta_1=r\frac{s_h}{s_g}$
+
+
+\end {center}
+
+```{r}
+girth_mean <- 107.20
+girth_sd <- 10.37
+height_mean <- 171.14
+height_sd <- 9.41
+r <- 0.67
+
+slope <- round(r * (height_sd / girth_sd),5)
+slope
+
+```
+
+```{r}
+intercept <- height_mean - (slope * girth_mean)
+intercept
+```
+**$\beta_0=105.9656$ and $\beta_1=0.60797$. The equation of the regression line is $y=105.9656+0.60797x$** 
+
+
+(b) Interpret the slope and the intercept in this context.
+
+**The height increases on average by 0.60797 cm per cm of shoulder girth. The average height at a shoulder girth at 0 cm is 105.9656 cm.**
+
+(c) Calculate $R^2$ of the regression line for predicting height from shoulder girth, and interpret it in the context of the application.
+
+```{r}
+rr<-r^2
+
+rr
+
+rr*100
+```
+**There is 44.89% variability in height can be explained by the shoulder girth.**
+
+(d) A randomly selected student from your class has a shoulder girth of 100 cm. Predict the height of this student using the model.
+
+```{r}
+x<-100
+
+student_100<-(slope * x) + intercept
+student_100
+```
+**The predicted height for the random student with a shoulder girth of 100 cm is 166.7626.**
+
+(e) The student from part (d) is 160 cm tall. Calculate the residual, and explain what this residual means.
+
+```{r}
+y<-160
+
+residual<-y-student_100
+residual
+```
+**The observed value is 160 cm and the predicted value is 166.7626. We overestimated the height by -6.762616 cm.**
+
+(f) A one year old has a shoulder girth of 56 cm. Would it be appropriate to use this linear model to predict the height of this child?
+
+
+**Based on the previous scatterplot, the range of the shoulder girth data set is between 80 and 140 cm. 56 cm is not within the range, so it is not appropriate to use this linear model.**
+
+
+
+
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**Cats, Part I.** (8.26, p. 327) The following regression output is for predicting the heart weight (in g) of cats from their body weight (in kg). The coefficients are estimated using a dataset of 144 domestic cats.
+
+\begin{center}
+{
+\begin{tabular}{rrrrr}
+    \hline
+            & Estimate  & Std. Error    & t value   & Pr($>$$|$t$|$) \\ 
+    \hline
+(Intercept) & -0.357    & 0.692         & -0.515    & 0.607 \\ 
+body wt     & 4.034     & 0.250         & 16.119    & 0.000 \\ 
+    \hline
+\end{tabular} \ \\
+$s = 1.452 \qquad R^2 = 64.66\% \qquad R^2_{adj} = 64.41\%$ 
+}
+\end{center}
+
+\begin{center}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.height=4}
+# load packages -----------------------------------------------------
+library(openintro)
+library(xtable)
+library(MASS)
+# load data ---------------------------------------------------------
+data(cats)
+# model heart weight vs. weight -------------------------------------
+m_cats_hwt_bwt <- lm(cats$Hwt ~ cats$Bwt)
+# plot heart weight vs. weight --------------------------------------
+par(mar = c(3.7, 3.7, 0.5, 0.5), las = 1, mgp = c(2.5, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5)
+plot(cats$Hwt ~ cats$Bwt, 
+     xlab = "Body weight (kg)", ylab = "Heart weight (g)", 
+     pch = 19, col = COL[1,2],
+     xlim = c(2,4), ylim = c(5, 20.5), axes = FALSE)
+axis(1, at = seq(2, 4, 0.5))
+axis(2, at = seq(5, 20, 5))
+box()
+```
+\end{center}
+
+
+(a) Write out the linear model.
+
+\begin{center}
+
+$y=-0.357+4.034x$
+
+\end{center}
+
+(b) Interpret the intercept.
+
+**The intercept is 0.357 grams. This is not realistic because a weight of 0 kg should correspond with a heart weight of 0 gram.**
+
+(c) Interpret the slope.
+
+**The heart weight increases on average by 4.034 grams per kilograms of body weight.**
+
+
+(d) Interpret $R^2$.
+
+$R^2=64.66%$
+$=0.6466$
+
+**64.66% of the variation in the heart weight is explained by the straight-line relationship between the body weight and the heart weight.**
+
+(e) Calculate the correlation coefficient.
+
+```{r}
+correlation<-0.6466
+cc<-sqrt(correlation)
+
+cc
+```
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**Rate my professor.** (8.44, p. 340) Many college courses conclude by giving students the opportunity to evaluate the course and the instructor anonymously. However, the use of these student evaluations as an indicator of course quality and teaching effectiveness is often criticized because these measures may reflect the influence of non-teaching related characteristics, such as the physical appearance of the instructor. Researchers at University of Texas, Austin collected data on teaching evaluation score (higher score means better) and standardized beauty score (a score of 0 means average, negative score means below average, and a positive score means above average) for a sample of 463 professors. The scatterplot below shows the relationship between these variables, and also provided is a regression output for predicting teaching evaluation score from beauty score.
+
+\begin{center}
+\begin{tabular}{rrrrr}
+    \hline
+            & Estimate  & Std. Error    & t value   & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 4.010     & 0.0255        & 	157.21  & 0.0000 \\ 
+beauty      &  \fbox{\textcolor{white}{{ Cell 1}}}  
+                        & 0.0322        & 4.13      & 0.0000\vspace{0.8mm} \\ 
+   \hline
+\end{tabular}
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.height=4}
+# load packages -----------------------------------------------------
+library(openintro)
+# load data ---------------------------------------------------------
+prof_evals_beauty <- read.csv("https://github.com/jbryer/DATA606Fall2019/raw/master/course_data/prof_evals_beauty.csv")
+# rename variables for convenience ----------------------------------
+beauty <- prof_evals_beauty$btystdave
+eval <- prof_evals_beauty$courseevaluation
+# model evaluation scores vs. beauty --------------------------------
+m_eval_beauty = lm(eval ~ beauty)
+# scatterplot of evaluation scores vs. beauty -----------------------
+par(mar = c(3.9, 3.9, 0.5, 0.5), las = 0, mgp = c(2.7, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5, las = 1)
+plot(eval ~ beauty, 
+     xlab = "Beauty", ylab = "Teaching evaluation", 
+     pch = 19, col = COL[1,2], 
+     axes = FALSE)
+axis(1, at = seq(-1, 2, 1))
+axis(2, at = seq(2, 5, 1))
+box()
+```
+\end{center}
+
+(a) Given that the average standardized beauty score is -0.0883 and average teaching evaluation score is 3.9983, calculate the slope. Alternatively, the slope may be computed using just the information provided in the model summary table.
+
+```{r}
+x<--0.0883
+y<-3.9983
+b<-4.010
+
+slope<-(y-b)/x
+slope
+
+```
+
+(b) Do these data provide convincing evidence that the slope of the relationship between teaching evaluation and beauty is positive? Explain your reasoning.
+
+
+\begin {center}
+
+$SE_b=0.0322$
+
+\end {center}
+
+**Hypothesis:**
+
+\begin {center}
+
+$H_0:\beta=0$
+$H_1:\beta>0$
+
+\end {center}
+
+
+Compute the value of the test statistic:
+
+\begin {center}
+
+$t=\frac{b_1-\beta_1}{SE_b}\approx\frac{0.1325-0}{0.0322}\approx4.13$
+
+\end {center}
+
+**Since P<0.05, we can reject the null hypothesis. There is enough information to support the claim.**
+
+(c) List the conditions required for linear regression and check if each one is satisfied for this model based on the following diagnostic plots.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.height=4}
+# residuals plot ----------------------------------------------------
+par(mar = c(3.9, 3.9, 0.5, 0.5), las = 0, mgp = c(2.7, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5, las = 1)
+plot(m_eval_beauty$residuals ~ beauty, 
+     xlab = "Beauty", ylab = "Residuals", 
+     pch = 19, col = COL[1,2], 
+     ylim = c(-1.82, 1.82), axes = FALSE)
+axis(1, at = seq(-1, 2, 1))
+axis(2, at = seq(-1, 1, 1))
+box()
+abline(h = 0, lty = 3)
+# residuals histogram -----------------------------------------------
+par(mar = c(3.9, 3, 0, 0), cex.lab = 1.5, cex.axis = 1.5)
+hist(m_eval_beauty$residuals, 
+     xlab = "Residuals", ylab = "", main = "",
+     col = COL[1],
+     xlim = c(-2,2))
+# normal probability plot of residuals ------------------------------
+par(mar = c(3.9, 3.9, 0.5, 0.5), mgp = c(2.7, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5)
+qqnorm(m_eval_beauty$residuals, 
+       pch = 19, col = COL[1,2],
+       main = "", las = 0)
+qqline(m_eval_beauty$residuals, col = COL[1])
+# order of residuals ---------------------------------------------===
+par(mar = c(3.9, 3.9, 0.5, 0.5), mgp = c(2.7, 0.7, 0), 
+    cex.lab = 1.5, cex.axis = 1.5)
+plot(m_eval_beauty$residuals, 
+     xlab = "Order of data collection", ylab = "Residuals", main = "",
+     pch = 19, col = COL[1,2],
+     ylim = c(-1.82, 1.82), axes = FALSE)
+axis(1)
+axis(2, at = seq(-1, 1, 1))
+box()
+abline(h = 0, lty = 3)
+```
+
+**The conditions required for linear regression are: independent observations, linear relationship, equal variance, and normal residuals. 
+
+**Independent observation:** satisfied, assuming the professors were randomly selected.
+
+**Linear relationship:** satisfied, because the residual plot does not show strong curvature.
+
+**Equal variance:** satisfied; the vertical spread is the same everywhere.
+
+**Normal residual:** satisfied; histogram appears symmetric and unimodal.
+
+Since all conditions are satisfied, a simple least squares fit appropriate.
